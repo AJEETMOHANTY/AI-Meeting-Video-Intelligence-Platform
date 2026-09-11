@@ -1,6 +1,6 @@
 from meeting.graph import meeting_graph
 from meeting.chat import MeetingChat
-
+from meeting.processor import process_meeting
 
 def main():
 
@@ -8,19 +8,14 @@ def main():
 
     print("Processing Meeting...\n")
 
-    # Run LangGraph
-    result = meeting_graph.invoke(
-        {
-            "audio_path": audio_path
-        }
-    )
+    # Process meeting and save it to database
+    result = process_meeting(audio_path)
 
-    print("\nMeeting Summary")
-    print("=" * 50)
-    print(result["summary"])
+    print("\n===== MEETING =====")
+    print("ID:", result["meeting_id"])
+    print("Title:", result["meeting_title"])
 
-    print("\nExtracted Tasks")
-    print("=" * 50)
+    print("\n===== TASKS =====")
 
     for task in result["tasks"]:
         print(task)
@@ -30,7 +25,6 @@ def main():
     # -------------------------------
 
     chat = MeetingChat()
-
     chat.load_transcript(result["transcript"])
 
     print("\nMeeting Chat Started")
