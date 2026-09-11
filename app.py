@@ -1,6 +1,8 @@
 import streamlit as st
 from youtube.chat import TranscriptChat
 from youtube.processor import process_youtube
+from meeting.processor import process_meeting
+from meeting.chat import MeetingChat
 
 # Session state
 if "chat" not in st.session_state:
@@ -11,6 +13,15 @@ if "video" not in st.session_state:
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
+    
+if "meeting" not in st.session_state:
+    st.session_state.meeting = None
+
+if "meeting_chat" not in st.session_state:
+    st.session_state.meeting_chat = None
+
+if "meeting_messages" not in st.session_state:
+    st.session_state.meeting_messages = []
 
 
 # Page setup
@@ -50,6 +61,51 @@ if st.button("Process Video"):
 
         st.success("Video processed successfully!")
 
+# Meeting
+st.subheader("🎙️ Meeting")
+
+audio_file = st.file_uploader(
+    "Upload Meeting Audio",
+    type=["mp3", "wav", "m4a"]
+)
+
+if st.button("Process Meeting"):
+
+    if audio_file is None:
+        st.warning("Please upload a meeting audio file")
+
+    else:
+
+        with st.spinner("Processing meeting..."):
+
+            audio_path = audio_file.name
+
+            with open(audio_path, "wb") as f:
+                f.write(audio_file.getbuffer())
+
+            result = process_meeting(audio_path)
+
+            chat = MeetingChat()
+            chat.load_transcript(result["transcript"])
+
+        st.session_state.meeting = result
+        st.session_state.meeting_chat = chat
+        st.session_state.meeting_messages = []
+
+        st.success("Meeting processed successfully!")
+        
+        st.write("### Meeting Title")
+        st.write(result["meeting_title"])
+
+        st.write("### Summary")
+        st.write(result["summary"])
+
+        st.write("### Tasks")
+
+        for task in result["tasks"]:
+            st.write(
+                f"- {task['task']} | Owner: {task['owner']} | Status: {task['status']}"
+            )
 
 # Show video information
 if st.session_state.video:

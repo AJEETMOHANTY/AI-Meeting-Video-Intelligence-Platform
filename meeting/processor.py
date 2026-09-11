@@ -58,6 +58,7 @@ def process_meeting(audio_path):
             "meeting_id": meeting_id,
             "meeting_title": meeting_title,
             "transcript": transcript,
+            "summary": summary,
             "tasks": tasks
         }
 
