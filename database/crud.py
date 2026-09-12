@@ -265,3 +265,25 @@ def delete_task(db: Session, task_id: int):
     db.commit()
 
     return True
+
+# Add a duplicate check in database/crud.py
+# ==========================
+# GET MEETING BY TITLE
+# ==========================
+def get_meeting_by_title(db: Session, title: str):
+    return (
+        db.query(Meeting)
+        .filter(Meeting.title == title)
+        .first()
+    )
+
+
+# ==========================
+# GET TASKS OF A MEETING
+# ==========================
+def get_tasks_by_meeting_id(db: Session, meeting_id: int):
+    return (
+        db.query(Task)
+        .filter(Task.meeting_id == meeting_id)
+        .all()
+    )

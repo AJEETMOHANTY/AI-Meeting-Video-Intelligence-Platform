@@ -1,44 +1,73 @@
-# This file will become the bridge between Meeting AI + Database:
-
 import os
+
 from meeting.graph import meeting_graph
 from database.database import SessionLocal
-from database.crud import create_meeting, create_task
+from database.crud import (
+    create_meeting,
+    create_task,
+    get_meeting_by_title,
+    get_tasks_by_meeting_id,
+)
+
 
 def process_meeting(audio_path):
 
-    print("Processing Meeting...")
-
-    # Run the Meeting AI pipeline
-    result = meeting_graph.invoke(
-        {
-            "audio_path": audio_path
-        }
-    )
-
-    transcript = result["transcript"]
-    summary = result["summary"]
-    tasks = result["tasks"]
-
-    # Create database session
     db = SessionLocal()
+
+    title = os.path.splitext(os.path.basename(audio_path))[0]
 
     try:
 
-        # Use audio filename as meeting title
-        title = os.path.splitext(os.path.basename(audio_path))[0]
+        # -------------------------
+        # Check duplicate meeting
+        # -------------------------
+        existing_meeting = get_meeting_by_title(db, title)
 
-        # Save meeting
+        if existing_meeting:
+
+            print("Meeting already exists. Fetching from database...")
+
+            tasks = get_tasks_by_meeting_id(db, existing_meeting.id)
+
+            return {
+                "meeting_id": existing_meeting.id,
+                "meeting_title": existing_meeting.title,
+                "transcript": existing_meeting.transcript,
+                "summary": existing_meeting.summary,
+                "tasks": [
+                    {
+                        "task": task.task,
+                        "owner": task.owner,
+                        "status": task.status,
+                    }
+                    for task in tasks
+                ],
+            }
+
+        # -------------------------
+        # Process new meeting
+        # -------------------------
+        print("Processing new meeting...")
+
+        result = meeting_graph.invoke(
+            {
+                "audio_path": audio_path,
+            }
+        )
+
+        transcript = result["transcript"]
+        summary = result["summary"]
+        tasks = result["tasks"]
+
         meeting = create_meeting(
             db=db,
             title=title,
             transcript=transcript,
-            summary=summary
+            summary=summary,
         )
 
         print(f"Meeting saved with ID: {meeting.id}")
 
-        # Save extracted tasks
         for task in tasks:
 
             create_task(
@@ -46,20 +75,17 @@ def process_meeting(audio_path):
                 meeting_id=meeting.id,
                 task=task["task"],
                 owner=task["owner"],
-                status=task["status"]
+                status=task["status"],
             )
 
         print("Tasks saved successfully!")
 
-        meeting_id = meeting.id
-        meeting_title = meeting.title
-
         return {
-            "meeting_id": meeting_id,
-            "meeting_title": meeting_title,
+            "meeting_id": meeting.id,
+            "meeting_title": meeting.title,
             "transcript": transcript,
             "summary": summary,
-            "tasks": tasks
+            "tasks": tasks,
         }
 
     finally:

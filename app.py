@@ -13,7 +13,7 @@ if "video" not in st.session_state:
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
-    
+
 if "meeting" not in st.session_state:
     st.session_state.meeting = None
 
@@ -61,52 +61,6 @@ if st.button("Process Video"):
 
         st.success("Video processed successfully!")
 
-# Meeting
-st.subheader("🎙️ Meeting")
-
-audio_file = st.file_uploader(
-    "Upload Meeting Audio",
-    type=["mp3", "wav", "m4a"]
-)
-
-if st.button("Process Meeting"):
-
-    if audio_file is None:
-        st.warning("Please upload a meeting audio file")
-
-    else:
-
-        with st.spinner("Processing meeting..."):
-
-            audio_path = audio_file.name
-
-            with open(audio_path, "wb") as f:
-                f.write(audio_file.getbuffer())
-
-            result = process_meeting(audio_path)
-
-            chat = MeetingChat()
-            chat.load_transcript(result["transcript"])
-
-        st.session_state.meeting = result
-        st.session_state.meeting_chat = chat
-        st.session_state.meeting_messages = []
-
-        st.success("Meeting processed successfully!")
-        
-        st.write("### Meeting Title")
-        st.write(result["meeting_title"])
-
-        st.write("### Summary")
-        st.write(result["summary"])
-
-        st.write("### Tasks")
-
-        for task in result["tasks"]:
-            st.write(
-                f"- {task['task']} | Owner: {task['owner']} | Status: {task['status']}"
-            )
-
 # Show video information
 if st.session_state.video:
 
@@ -152,3 +106,104 @@ if st.session_state.chat:
 
         # Save answer
         st.session_state.messages.append({"role": "assistant", "content": answer})
+
+# Meeting
+st.subheader("🎙️ Meeting")
+
+audio_file = st.file_uploader(
+    "Upload Meeting Audio",
+    type=["mp3", "wav", "m4a"]
+)
+
+if st.button("Process Meeting"):
+
+    if audio_file is None:
+        st.warning("Please upload a meeting audio file")
+
+    else:
+
+        with st.spinner("Processing meeting..."):
+
+            audio_path = audio_file.name
+
+            with open(audio_path, "wb") as f:
+                f.write(audio_file.getbuffer())
+
+            result = process_meeting(audio_path)
+
+            chat = MeetingChat()
+            chat.load_transcript(result["transcript"])
+
+        st.session_state.meeting = result
+        st.session_state.meeting_chat = chat
+        st.session_state.meeting_messages = []
+
+        st.success("Meeting processed successfully!")
+
+
+# Show Meeting information
+if st.session_state.meeting:
+
+    meeting = st.session_state.meeting
+
+    st.write("### Meeting Title")
+    st.write(meeting["meeting_title"])
+
+    st.write("### Summary")
+    st.write(meeting["summary"])
+
+    st.write("### Tasks")
+
+    for task in meeting["tasks"]:
+
+        st.write(
+            f"- {task['task']} | "
+            f"Owner: {task['owner']} | "
+            f"Status: {task['status']}"
+        )
+
+
+# Meeting Chat
+if st.session_state.meeting_chat:
+
+    st.subheader("💬 Ask Allen about the Meeting")
+
+    for message in st.session_state.meeting_messages:
+
+        with st.chat_message(message["role"]):
+            st.write(message["content"])
+
+    question = st.text_input(
+        "Ask a question about this meeting..."
+    )
+
+    if st.button("Ask Meeting"):
+
+        if question:
+
+            st.session_state.meeting_messages.append(
+                {
+                    "role": "user",
+                    "content": question
+                }
+            )
+
+            with st.chat_message("user"):
+                st.write(question)
+
+            with st.chat_message("assistant"):
+
+                with st.spinner("Allen is thinking..."):
+
+                    answer = st.session_state.meeting_chat.ask(
+                        question
+                    )
+
+                st.write(answer)
+
+            st.session_state.meeting_messages.append(
+                {
+                    "role": "assistant",
+                    "content": answer
+                }
+            )
