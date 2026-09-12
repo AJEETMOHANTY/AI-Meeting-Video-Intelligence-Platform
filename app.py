@@ -4,6 +4,8 @@ from youtube.processor import process_youtube
 from meeting.processor import process_meeting
 from meeting.chat import MeetingChat
 
+import requests
+
 # Session state
 if "chat" not in st.session_state:
     st.session_state.chat = None
@@ -50,10 +52,13 @@ if st.button("Process Video"):
 
         with st.spinner("Processing video..."):
 
-            video = process_youtube(url)
+            # API Call to backend
+            response = requests.post("http://127.0.0.1:8000/youtube/process",params={"url": url})
+            response.raise_for_status()
+            video = response.json()
 
             chat = TranscriptChat()
-            chat.load_transcript(video.transcript)
+            chat.load_transcript(video["transcript"])
 
         st.session_state.video = video
         st.session_state.chat = chat
@@ -67,10 +72,10 @@ if st.session_state.video:
     video = st.session_state.video
 
     st.write("### Title")
-    st.write(video.title)
+    st.write(video["title"])
 
     st.write("### Summary")
-    st.write(video.summary)
+    st.write(video["summary"])
 
 
 # Chat

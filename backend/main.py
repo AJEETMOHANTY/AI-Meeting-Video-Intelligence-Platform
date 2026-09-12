@@ -19,6 +19,7 @@ def process_video(url: str):
         "id": video.id,
         "title": video.title,
         "url": video.url,
+        "transcript": video.transcript,
         "summary": video.summary,
     }
 
