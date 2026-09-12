@@ -1,5 +1,4 @@
 # Only database operations.
-
 from sqlalchemy.orm import Session  # Used to talk to PostgreSQL.
 from database.models import YouTube, Meeting, Task
 
@@ -69,8 +68,6 @@ def update_youtube(db: Session, youtube_id: int, title: str):
 # ==========================
 # DELETE
 # ==========================
-
-
 def delete_youtube(db: Session, youtube_id: int):
     youtube = get_youtube_by_id(db, youtube_id)
 
@@ -84,13 +81,6 @@ def delete_youtube(db: Session, youtube_id: int):
 
 
 # ===========================
-# READ ALL RECORDS
-# ===========================
-def get_all_youtube(db: Session):
-    return db.query(YouTube).all()
-
-
-# ===========================
 # COUNT RECORDS
 # ===========================
 def count_youtube(db: Session):
@@ -100,10 +90,6 @@ def count_youtube(db: Session):
 # ===========================
 # GET YOUTUBE BY TITLE
 # ===========================
-from requests import Session
-from database.models import YouTube
-
-
 def get_youtube_by_title(db: Session, title: str):
     return db.query(YouTube).filter(YouTube.title == title).first()
 
@@ -266,24 +252,17 @@ def delete_task(db: Session, task_id: int):
 
     return True
 
+
 # Add a duplicate check in database/crud.py
 # ==========================
 # GET MEETING BY TITLE
 # ==========================
 def get_meeting_by_title(db: Session, title: str):
-    return (
-        db.query(Meeting)
-        .filter(Meeting.title == title)
-        .first()
-    )
+    return db.query(Meeting).filter(Meeting.title == title).first()
 
 
 # ==========================
 # GET TASKS OF A MEETING
 # ==========================
 def get_tasks_by_meeting_id(db: Session, meeting_id: int):
-    return (
-        db.query(Task)
-        .filter(Task.meeting_id == meeting_id)
-        .all()
-    )
+    return db.query(Task).filter(Task.meeting_id == meeting_id).all()
