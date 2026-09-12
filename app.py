@@ -33,8 +33,9 @@ st.set_page_config(page_title="Allen", page_icon="🤖", layout="wide")
 # Title
 st.title("🤖 Allen - Unified Knowledge Platform")
 
-
+# ==============================
 # YouTube
+# ==============================
 st.subheader("🎥 YouTube")
 
 url = st.text_input(
@@ -112,7 +113,9 @@ if st.session_state.chat:
         # Save answer
         st.session_state.messages.append({"role": "assistant", "content": answer})
 
-# Meeting
+# ==============================
+# Meeting 
+# =============================
 st.subheader("🎙️ Meeting")
 
 audio_file = st.file_uploader(
@@ -129,12 +132,20 @@ if st.button("Process Meeting"):
 
         with st.spinner("Processing meeting..."):
 
-            audio_path = audio_file.name
+            response = requests.post(
+                "http://127.0.0.1:8000/meeting/process",
+                files={
+                    "audio_file": (
+                        audio_file.name,
+                        audio_file.getvalue(),
+                        audio_file.type
+                    )
+                }
+            )
 
-            with open(audio_path, "wb") as f:
-                f.write(audio_file.getbuffer())
+            response.raise_for_status()
 
-            result = process_meeting(audio_path)
+            result = response.json()
 
             chat = MeetingChat()
             chat.load_transcript(result["transcript"])
@@ -152,7 +163,7 @@ if st.session_state.meeting:
     meeting = st.session_state.meeting
 
     st.write("### Meeting Title")
-    st.write(meeting["meeting_title"])
+    st.write(meeting["title"])
 
     st.write("### Summary")
     st.write(meeting["summary"])

@@ -37,6 +37,7 @@ async def process_meeting_api(audio_file: UploadFile = File(...)):
     return {
         "meeting_id": result["meeting_id"],
         "title": result["meeting_title"],
+        "transcript": result["transcript"],
         "summary": result["summary"],
         "tasks": result["tasks"]
     }
