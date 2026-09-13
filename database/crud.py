@@ -224,18 +224,26 @@ def count_tasks(db: Session):
 # ==========================
 # UPDATE TASK
 # ==========================
-def update_task(db: Session, task_id: int, status: str):
-    task = get_task_by_id(db, task_id)
+def update_task(
+    db: Session,
+    task_id: int,
+    task: str,
+    owner: str,
+    status: str
+):
+    existing_task = get_task_by_id(db, task_id)
 
-    if task is None:
+    if existing_task is None:
         return None
 
-    task.status = status
+    existing_task.task = task
+    existing_task.owner = owner
+    existing_task.status = status
 
     db.commit()
-    db.refresh(task)
+    db.refresh(existing_task)
 
-    return task
+    return existing_task
 
 
 # ==========================

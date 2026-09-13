@@ -1,10 +1,7 @@
+import requests
 import streamlit as st
 from youtube.chat import TranscriptChat
-from youtube.processor import process_youtube
-from meeting.processor import process_meeting
 from meeting.chat import MeetingChat
-
-import requests
 
 # Session state
 if "chat" not in st.session_state:

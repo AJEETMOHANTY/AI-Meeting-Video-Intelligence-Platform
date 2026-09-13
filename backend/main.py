@@ -5,9 +5,15 @@ from fastapi import FastAPI, UploadFile, File
 
 app = FastAPI(title="Allen API")
 
+
 @app.get("/")
 def home():
     return {"message": "Allen API is running"}
+
+
+@app.get("/health")
+def health_check():
+    return {"status": "healthy"}
 
 
 @app.post("/youtube/process")
@@ -39,5 +45,5 @@ async def process_meeting_api(audio_file: UploadFile = File(...)):
         "title": result["meeting_title"],
         "transcript": result["transcript"],
         "summary": result["summary"],
-        "tasks": result["tasks"]
+        "tasks": result["tasks"],
     }
