@@ -36,6 +36,7 @@ def process_meeting(audio_path):
                 "summary": existing_meeting.summary,
                 "tasks": [
                     {
+                        "id": task.id,
                         "task": task.task,
                         "owner": task.owner,
                         "status": task.status,
@@ -68,14 +69,25 @@ def process_meeting(audio_path):
 
         print(f"Meeting saved with ID: {meeting.id}")
 
+        saved_tasks = []
+
         for task in tasks:
 
-            create_task(
+            saved_task = create_task(
                 db=db,
                 meeting_id=meeting.id,
                 task=task["task"],
                 owner=task["owner"],
                 status=task["status"],
+            )
+
+            saved_tasks.append(
+                {
+                    "id": saved_task.id,
+                    "task": saved_task.task,
+                    "owner": saved_task.owner,
+                    "status": saved_task.status,
+                }
             )
 
         print("Tasks saved successfully!")
@@ -85,7 +97,7 @@ def process_meeting(audio_path):
             "meeting_title": meeting.title,
             "transcript": transcript,
             "summary": summary,
-            "tasks": tasks,
+            "tasks": saved_tasks,
         }
 
     finally:

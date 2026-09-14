@@ -191,6 +191,7 @@ def delete_meeting(db: Session, meeting_id: int):
 def create_task(
     db: Session, meeting_id: int, task: str, owner: str, status: str = "Pending"
 ):
+    status = status.capitalize()
     new_task = Task(meeting_id=meeting_id, task=task, owner=owner, status=status)
 
     db.add(new_task)
@@ -236,6 +237,8 @@ def update_task(
     if existing_task is None:
         return None
 
+    status = status.capitalize()
+    
     existing_task.task = task
     existing_task.owner = owner
     existing_task.status = status

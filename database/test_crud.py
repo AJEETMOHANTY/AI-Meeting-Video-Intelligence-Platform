@@ -341,7 +341,9 @@
 
 # task = update_task(
 #     db=db,
-#     task_id=3,
+#     task_id=6,
+#     task="Build the FastAPI backend",
+#     owner="Ajeet",
 #     status="Completed"
 # )
 
@@ -358,19 +360,19 @@
 # ==========================
 # DELETE TASK
 # ==========================
-# from database.database import SessionLocal
-# from database.crud import delete_task
+from database.database import SessionLocal
+from database.crud import delete_task
 
-# db = SessionLocal()
+db = SessionLocal()
 
-# result = delete_task(
-#     db=db,
-#     task_id=3
-# )
+result = delete_task(
+    db=db,
+    task_id=7
+)
 
-# print("Delete Result:", result)
+print("Delete Result:", result)
 
-# db.close()
+db.close()
 
 # ==========================
 # CREATE A MEETING -> TASKS
@@ -425,19 +427,19 @@
 # ==========================
 # CREATE A TASKS -> MEETING
 # ==========================
-from database.database import SessionLocal
-from database.models import Task
+# from database.database import SessionLocal
+# from database.models import Task
 
-db = SessionLocal()
+# db = SessionLocal()
 
-task = db.query(Task).filter(Task.task == "Build FastAPI backend").first()
+# task = db.query(Task).filter(Task.task == "Build FastAPI backend").first()
 
-if task:
-    print("Task:", task.task)
-    print("Task ID:", task.id)
-    print("Meeting ID:", task.meeting_id)
-    print("Meeting Title:", task.meeting.title)
-else:
-    print("Task not found")
+# if task:
+#     print("Task:", task.task)
+#     print("Task ID:", task.id)
+#     print("Meeting ID:", task.meeting_id)
+#     print("Meeting Title:", task.meeting.title)
+# else:
+#     print("Task not found")
 
-db.close()
+# db.close()

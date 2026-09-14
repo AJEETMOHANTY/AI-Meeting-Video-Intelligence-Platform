@@ -51,7 +51,9 @@ if st.button("Process Video"):
         with st.spinner("Processing video..."):
 
             # API Call to backend
-            response = requests.post("http://127.0.0.1:8000/youtube/process",params={"url": url})
+            response = requests.post(
+                "http://127.0.0.1:8000/youtube/process", params={"url": url}
+            )
             response.raise_for_status()
             video = response.json()
 
@@ -111,14 +113,11 @@ if st.session_state.chat:
         st.session_state.messages.append({"role": "assistant", "content": answer})
 
 # ==============================
-# Meeting 
+# Meeting
 # =============================
 st.subheader("🎙️ Meeting")
 
-audio_file = st.file_uploader(
-    "Upload Meeting Audio",
-    type=["mp3", "wav", "m4a"]
-)
+audio_file = st.file_uploader("Upload Meeting Audio", type=["mp3", "wav", "m4a"])
 
 if st.button("Process Meeting"):
 
@@ -135,9 +134,9 @@ if st.button("Process Meeting"):
                     "audio_file": (
                         audio_file.name,
                         audio_file.getvalue(),
-                        audio_file.type
+                        audio_file.type,
                     )
-                }
+                },
             )
 
             response.raise_for_status()
@@ -166,14 +165,141 @@ if st.session_state.meeting:
     st.write(meeting["summary"])
 
     st.write("### Tasks")
+    
+    # Code for addition of new task.
 
-    for task in meeting["tasks"]:
+    if "add_task" not in st.session_state:
+        st.session_state.add_task = False
 
-        st.write(
-            f"- {task['task']} | "
-            f"Owner: {task['owner']} | "
-            f"Status: {task['status']}"
+    if st.button("+ Add Task"):
+        st.session_state.add_task = True
+
+    if st.session_state.add_task:
+
+        with st.form("add_task_form"):
+
+            new_task = st.text_input(
+                "Task"
+            )
+
+            new_owner = st.text_input(
+                "Owner",
+                value="Unknown"
+            )
+
+            new_status = st.selectbox(
+                "Status",
+                ["Pending", "Completed"]
+            )
+
+            submitted = st.form_submit_button("Add Task")
+
+            if submitted:
+
+                if not new_task.strip():
+                    st.warning("Please enter a task.")
+
+                else:
+
+                    response = requests.post(
+                        f"http://127.0.0.1:8000/meeting/{meeting['meeting_id']}/task",
+                        params={
+                            "task": new_task,
+                            "owner": new_owner,
+                            "status": new_status
+                        }
+                    )
+
+                    response.raise_for_status()
+
+                    created_task = response.json()
+
+                    meeting["tasks"].append(created_task)
+
+                    st.session_state.add_task = False
+
+                    st.toast("Task added successfully!")
+
+                    st.rerun()
+
+    # Code for editing and deleting tasks.
+    for i, task in enumerate(meeting["tasks"]):
+
+        st.write(f"#### Task {i + 1}")
+
+        edited_task = st.text_input("Task", value=task["task"], key=f"task_{task['id']}")
+
+        edited_owner = st.text_input(
+            "Owner", value=task["owner"], key=f"owner_{task['id']}"
         )
+
+        edited_status = st.selectbox(
+            "Status",
+            ["Pending", "Completed"],
+            index=0 if task["status"].lower() == "pending" else 1,
+            key=f"status_{task['id']}",
+        )
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            if st.button("Save Changes", key=f"save_{task['id']}"):
+
+                response = requests.put(
+                    f"http://127.0.0.1:8000/task/{task['id']}",
+                    params={
+                        "task": edited_task,
+                        "owner": edited_owner,
+                        "status": edited_status,
+                    },
+                )
+
+                response.raise_for_status()
+
+                updated_task = response.json()
+
+                task["task"] = updated_task["task"]
+                task["owner"] = updated_task["owner"]
+                task["status"] = updated_task["status"]
+
+                st.success("Task updated successfully!")
+
+        with col2:
+            if st.button("Delete Task", key=f"delete_{task['id']}"):
+                st.session_state[f"confirm_delete_{task['id']}"] = True
+
+            if st.session_state.get(f"confirm_delete_{task['id']}", False):
+
+                st.warning("Are you sure you want to delete this task?")
+
+                confirm_col1, confirm_col2 = st.columns(2)
+
+                with confirm_col1:
+                    if st.button(
+                        "Yes, Delete",
+                        key=f"confirm_{task['id']}"
+                    ):
+                        response = requests.delete(
+                            f"http://127.0.0.1:8000/task/{task['id']}"
+                        )
+
+                        response.raise_for_status()
+
+                        meeting["tasks"].remove(task)
+
+                        del st.session_state[f"confirm_delete_{task['id']}"]
+
+                        st.success("Task deleted successfully!")
+
+                with confirm_col2:
+                    if st.button(
+                        "Cancel",
+                        key=f"cancel_{task['id']}"
+                    ):
+                        del st.session_state[f"confirm_delete_{task['id']}"]
+                        st.rerun()
+
+        st.divider()
 
 
 # Meeting Chat
@@ -186,19 +312,14 @@ if st.session_state.meeting_chat:
         with st.chat_message(message["role"]):
             st.write(message["content"])
 
-    question = st.text_input(
-        "Ask a question about this meeting..."
-    )
+    question = st.text_input("Ask a question about this meeting...")
 
     if st.button("Ask Meeting"):
 
         if question:
 
             st.session_state.meeting_messages.append(
-                {
-                    "role": "user",
-                    "content": question
-                }
+                {"role": "user", "content": question}
             )
 
             with st.chat_message("user"):
@@ -208,15 +329,10 @@ if st.session_state.meeting_chat:
 
                 with st.spinner("Allen is thinking..."):
 
-                    answer = st.session_state.meeting_chat.ask(
-                        question
-                    )
+                    answer = st.session_state.meeting_chat.ask(question)
 
                 st.write(answer)
 
             st.session_state.meeting_messages.append(
-                {
-                    "role": "assistant",
-                    "content": answer
-                }
+                {"role": "assistant", "content": answer}
             )
