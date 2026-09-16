@@ -55,7 +55,7 @@ Allen:
 8. Allows the user to ask questions about the video
 
 ### YouTube Flow
-
+```
 YouTube URL
 ↓
 Transcript Extraction
@@ -79,7 +79,7 @@ FAISS
 RAG
 ↓
 Chat with Video
-
+```
 The chat system retrieves relevant transcript chunks from FAISS and uses Gemini
 to answer questions based only on the video content.
 
@@ -106,7 +106,7 @@ Allen:
 10. Allows the user to chat with the meeting
 
 ### Meeting Flow
-
+```
 Meeting Audio
 ↓
 Whisper
@@ -129,7 +129,7 @@ FAISS
 RAG
 ↓
 Chat with Meeting
-
+```
 ---
 
 # Task Management
